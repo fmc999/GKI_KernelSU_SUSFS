@@ -301,6 +301,26 @@ jobs:
           $REPO --trace sync -c -j$(nproc --all) --no-tags --fail-fast
           echo "REMOTE_BRANCH=$REMOTE_BRANCH" >> $GITHUB_ENV
 
+      # ==================== 替换 process_vm_access.c ====================
+      # 替换 mm/process_vm_access.c 文件并显示替换前后内容（仅针对 Android 15 6.6）
+      - name: 替换 process_vm_access.c
+        if: inputs.android_version == 'android15' && inputs.kernel_version == '6.6'
+        working-directory: ${{ env.KERNEL_ROOT }}
+        run: |
+          # 显示替换前的文件内容
+          echo "::group::替换前 process_vm_access.c 内容"
+          cat ./common/mm/process_vm_access.c
+          echo "::endgroup::"
+
+          # 从指定URL下载文件并替换
+          echo "开始替换 process_vm_access.c 文件..."
+          curl -LSs "https://raw.githubusercontent.com/fmc999/GKI_KernelSU_SUSFS/refs/heads/dev/process_vm_access.c" -o ./common/mm/process_vm_access.c
+
+          # 显示替换后的文件内容
+          echo "::group::替换后 process_vm_access.c 内容"
+          cat ./common/mm/process_vm_access.c
+          echo "::endgroup::"
+
       # ==================== 伪装 /proc/config.gz（自动检测） ====================
       # 若仓库存在 config/stock_defconfig，则自动应用；不存在则跳过
       - name: 应用 Stock Config 伪装
